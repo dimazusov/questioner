@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"optimization/internal/pkg/morph"
 	"optimization/internal/pkg/sentence"
 )
 
@@ -26,60 +26,22 @@ func NewQuestionerAction(rep Repository, client MorphClient) *questioner {
 
 func (m questioner) Handle(ctx context.Context, s *sentence.Sentence) (judgments *sentence.Sentence, err error) {
 	questions := extractQuestions(*s)
-	for _, q := range questions {
-		fmt.Println(q.Sentence.Sentence())
+	for i, q := range questions { // 1
+		normalForm := sentence.Sentence{}
+		for i, w := range q.Sentence.Words {
+			if isNoun(w) {
+				normalForm.Words = q.Sentence.Words[i:]
+				normalForm.CountWord = q.Sentence.CountWord - uint(i)
+				normalForm.ID = q.Sentence.ID
+				break
+			}
+		}
+		questions[i] = &sentence.Question{Sentence: normalForm}
 	}
-	_ = questions
 	return nil, nil
 }
 
-func deepCopy(sent sentence.Sentence) sentence.Sentence {
-	newSentence := sentence.Sentence{
-		ID:        sent.ID,
-		CountWord: sent.CountWord,
-	}
-	newWords := make([]sentence.Form, len(sent.Words))
-	for i, word := range sent.Words {
-		tag := word.Tag
-		newTag := sentence.Tag{
-			POS:          checkAndCopy(tag.POS),
-			Animacy:      checkAndCopy(tag.Animacy),
-			Aspect:       checkAndCopy(tag.Aspect),
-			Case:         checkAndCopy(tag.Case),
-			Gender:       checkAndCopy(tag.Gender),
-			Involvment:   checkAndCopy(tag.Involvment),
-			Mood:         checkAndCopy(tag.Mood),
-			Number:       checkAndCopy(tag.Number),
-			Person:       checkAndCopy(tag.Person),
-			Tense:        checkAndCopy(tag.Tense),
-			Transitivity: checkAndCopy(tag.Transitivity),
-			Voice:        checkAndCopy(tag.Voice),
-		}
-		newForm := sentence.Form{
-			ID:                 word.ID,
-			JudgmentID:         word.JudgmentID,
-			Word:               word.Word,
-			NormalForm:         word.NormalForm,
-			Score:              word.Score,
-			PositionInSentence: word.PositionInSentence,
-			Tag:                newTag,
-		}
-		newWords[i] = newForm
-	}
-	newSentence.Words = newWords
-	return newSentence
-}
-
-func checkAndCopy(str *string) *string {
-	if str != nil {
-		s := *str
-		return &s
-	}
-	return nil
-}
-
-func extractQuestions(sent sentence.Sentence) []*sentence.Question {
-	s := deepCopy(sent)
+func extractQuestions(s sentence.Sentence) []*sentence.Question {
 	var questions []*sentence.Question
 	for i := 0; uint(i) < s.CountWord; i++ {
 		if s.Words[i].Word == "{" {
@@ -104,4 +66,11 @@ func extractQuestions(sent sentence.Sentence) []*sentence.Question {
 		}
 	}
 	return questions
+}
+
+func isNoun(word sentence.Form) bool {
+	if word.Tag.POS == "" {
+		return false
+	}
+	return word.Tag.POS == morph.PartOfSpeachNOUN
 }

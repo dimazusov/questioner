@@ -17,7 +17,7 @@ func TestNewConcepterAction(t *testing.T) {
 	defer ctrl.Finish()
 
 	fullSentence := getSentence("необходимо выполнить mv {какое имя у файла или папки который нужно переместить?} {какое имя у файла или папки в которую нужно переместить?}")
-	_ = fullSentence
+	expectedSentence := getSentence("необходимо выполнить mv 1.txt folder")
 
 	rep := NewMockRepository(ctrl)
 	client := NewMockMorphClient(ctrl)
@@ -36,7 +36,7 @@ func TestNewConcepterAction(t *testing.T) {
 	c := NewQuestionerAction(rep, client)
 	givenSentence, err := c.Handle(context.Background(), &fullSentence.Sentence)
 	require.Nil(t, err)
-	require.Equal(t, true, reflect.DeepEqual(givenSentence, []sentence.Sentence{}))
+	require.Equal(t, true, reflect.DeepEqual(givenSentence, []sentence.Sentence{expectedSentence.Sentence}))
 }
 
 func getSentence(str string) sentence.Template {
@@ -543,6 +543,116 @@ func getSentence(str string) sentence.Template {
 				"voice": ""
 			}
 		}]
+	}
+}`
+	// expectedStr
+	m["необходимо выполнить mv 1.txt folder"] = `{
+	"left": true,
+	"right": false,
+	"sentence": {
+		"id": 0,
+		"count_words": 5,
+		"words": [{
+				"word": "необходимо",
+				"normalForm": "необходимо",
+				"score": 0.5,
+				"positionInSentence": 0,
+				"tag": {
+					"pos": "PRED",
+					"animacy": "",
+					"aspect": "",
+					"case": "",
+					"gender": "",
+					"involvement": "",
+					"mood": "",
+					"number": "",
+					"person": "",
+					"tense": "pres",
+					"transitivity": "",
+					"voice": ""
+				}
+			},
+			{
+				"word": "выполнить",
+				"normalForm": "выполнить",
+				"score": 1.0,
+				"positionInSentence": 0,
+				"tag": {
+					"pos": "INFN",
+					"animacy": "",
+					"aspect": "perf",
+					"case": "",
+					"gender": "",
+					"involvement": "",
+					"mood": "",
+					"number": "",
+					"person": "",
+					"tense": "",
+					"transitivity": "tran",
+					"voice": ""
+				}
+			},
+			{
+				"word": "mv",
+				"normalForm": "mv",
+				"score": 0.75,
+				"positionInSentence": 0,
+				"tag": {
+					"pos": "",
+					"animacy": "",
+					"aspect": "",
+					"case": "",
+					"gender": "",
+					"involvement": "",
+					"mood": "",
+					"number": "",
+					"person": "",
+					"tense": "",
+					"transitivity": "",
+					"voice": ""
+				}
+			},
+			{
+				"word": "1.txt",
+				"normalForm": "1.txt",
+				"score": 1.0,
+				"positionInSentence": 0,
+				"tag": {
+					"pos": "",
+					"animacy": "",
+					"aspect": "",
+					"case": "",
+					"gender": "",
+					"involvement": "",
+					"mood": "",
+					"number": "",
+					"person": "",
+					"tense": "",
+					"transitivity": "",
+					"voice": ""
+				}
+			},
+			{
+				"word": "folder",
+				"normalForm": "folder",
+				"score": 1.0,
+				"positionInSentence": 0,
+				"tag": {
+					"pos": "",
+					"animacy": "",
+					"aspect": "",
+					"case": "",
+					"gender": "",
+					"involvement": "",
+					"mood": "",
+					"number": "",
+					"person": "",
+					"tense": "",
+					"transitivity": "",
+					"voice": ""
+				}
+			}
+		]
 	}
 }`
 
