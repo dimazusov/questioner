@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
-	"optimization/internal/pkg/morph"
 	"optimization/internal/pkg/sentence"
 )
 
 type Repository interface {
-	GetQuestionTemplate(ctx context.Context, q sentence.Sentence) (*sentence.Template, error)
 	GetResponseTemplate(ctx context.Context, q sentence.Template) (*sentence.Template, error)
 	GetResponse(ctx context.Context, r sentence.Template) (*sentence.Sentence, error)
 }
@@ -25,52 +23,57 @@ func NewQuestionerAction(rep Repository, client MorphClient) *questioner {
 }
 
 func (m questioner) Handle(ctx context.Context, s *sentence.Sentence) (judgments *sentence.Sentence, err error) {
-	questions := extractQuestions(*s)
-	for i, q := range questions { // 1
-		normalForm := sentence.Sentence{}
-		for i, w := range q.Sentence.Words {
-			if isNoun(w) {
-				normalForm.Words = q.Sentence.Words[i:]
-				normalForm.CountWord = q.Sentence.CountWord - uint(i)
-				normalForm.ID = q.Sentence.ID
-				break
-			}
+	var (
+		questions = extractQuestions(*s)
+		sIter     = s.IntoIter()
+		response  = sentence.Sentence{ID: s.ID}
+		_         = response
+		responses []sentence.Sentence
+	)
+	for _, q := range questions { // 1
+		questionTemplate := sentence.Template{
+			Sentence: sentence.Sentence(q),
+			Left:     true,
 		}
-		questions[i] = &sentence.Question{Sentence: normalForm}
+		responseTemplate, err := m.rep.GetResponseTemplate(ctx, questionTemplate)
+		if err != nil {
+			return nil, err
+		}
+		response, err := m.rep.GetResponse(ctx, *responseTemplate)
+		if err != nil {
+			return nil, err
+		}
+		responses = append(responses, *response)
+	}
+	for sIter.HasNext() {
+		word := sIter.GetNext()
+		_ = word
 	}
 	return nil, nil
 }
 
-func extractQuestions(s sentence.Sentence) []*sentence.Question {
-	var questions []*sentence.Question
-	for i := 0; uint(i) < s.CountWord; i++ {
-		if s.Words[i].Word == "{" {
-			i++
-			j := i
-			for ; s.Words[j].Word != "}"; j++ {
-			}
-			words := make([]sentence.Form, j-i)
-			for idx, word := range s.Words[i:j] { // фабричный метод?
-				w := word
-				w.Tag = word.Tag
-				words[idx] = w
-			}
-			sent := sentence.Sentence{
-				ID:        s.ID,
-				CountWord: uint(len(words)),
-				Words:     words,
-			}
-			question := sentence.Question{Sentence: sent}
-			questions = append(questions, &question)
-			i = j
+func extractQuestions(s sentence.Sentence) []sentence.Question {
+	var (
+		sIter     = s.IntoIter()
+		questions []sentence.Question
+		question  sentence.Question
+	)
+	for sIter.HasNext() {
+		word := sIter.GetNext()
+		if word.Word == "{" {
+			question = sentence.Question{ID: s.ID}
+		} else if word.Word == "}" {
+			question.CountWord = uint(len(question.Words))
+			questions = append(questions, question)
+		} else {
+			question.Words = append(question.Words, word)
 		}
 	}
 	return questions
 }
 
-func isNoun(word sentence.Form) bool {
-	if word.Tag.POS == "" {
-		return false
-	}
-	return word.Tag.POS == morph.PartOfSpeachNOUN
+func changeCase(form sentence.Form, wordCase string) sentence.Form { // неверно
+	form.Word = form.NormalForm
+	form.Tag.Case = wordCase
+	return form
 }
