@@ -8,31 +8,12 @@ type Sentence struct {
 
 type Question Sentence
 
-type SentenceIter struct {
-	Sent Sentence
-	idx  int
-}
-
 func (s Sentence) Sentence() string {
 	var result string
 	for _, word := range s.Words {
 		result += word.Word + " "
 	}
 	return result
-}
-
-func (s Sentence) IntoIter() SentenceIter {
-	return SentenceIter{Sent: s, idx: 0}
-}
-
-func (i *SentenceIter) HasNext() bool {
-	return i.idx < len(i.Sent.Words)
-}
-
-func (i *SentenceIter) GetNext() Form {
-	word := i.Sent.Words[i.idx]
-	i.idx++
-	return word
 }
 
 type Form struct {

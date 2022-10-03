@@ -18,21 +18,29 @@ func TestNewConcepterAction(t *testing.T) {
 
 	fullSentence := getSentence("необходимо выполнить mv {какое имя у файла или папки который нужно переместить?} {какое имя у файла или папки в которую нужно переместить?}")
 	expectedSentence := getSentence("необходимо выполнить mv 1.txt folder")
+	questions := extractQuestions(fullSentence.Sentence)
 
 	rep := NewMockRepository(ctrl)
 	client := NewMockMorphClient(ctrl)
+
 	rep.EXPECT().
-		GetQuestionTemplate(context.Background(), fullSentence).
+		GetResponseTemplate(context.Background(), sentence.Template{Sentence: sentence.Sentence(questions[0]), Left: true}).
 		Times(1).
-		Return(nil, nil)
+		Return(&sentence.Template{}, nil)
 	rep.EXPECT().
-		GetResponseTemplate(context.Background(), nil).
+		GetResponse(context.Background(), sentence.Template{}).
 		Times(1).
-		Return(nil, nil)
+		Return(&sentence.Sentence{}, nil)
+
 	rep.EXPECT().
-		GetResponse(context.Background(), nil).
+		GetResponseTemplate(context.Background(), sentence.Template{Sentence: sentence.Sentence(questions[1]), Left: true}).
 		Times(1).
-		Return(nil, nil)
+		Return(&sentence.Template{}, nil)
+	rep.EXPECT().
+		GetResponse(context.Background(), sentence.Template{}).
+		Times(1).
+		Return(&sentence.Sentence{}, nil)
+
 	c := NewQuestionerAction(rep, client)
 	givenSentence, err := c.Handle(context.Background(), &fullSentence.Sentence)
 	require.Nil(t, err)

@@ -35,21 +35,6 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// GetQuestionTemplate mocks base method.
-func (m *MockRepository) GetQuestionTemplate(ctx context.Context, q sentence.Sentence) (*sentence.Template, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetQuestionTemplate", ctx, q)
-	ret0, _ := ret[0].(*sentence.Template)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetQuestionTemplate indicates an expected call of GetQuestionTemplate.
-func (mr *MockRepositoryMockRecorder) GetQuestionTemplate(ctx, q interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuestionTemplate", reflect.TypeOf((*MockRepository)(nil).GetQuestionTemplate), ctx, q)
-}
-
 // GetResponse mocks base method.
 func (m *MockRepository) GetResponse(ctx context.Context, r sentence.Template) (*sentence.Sentence, error) {
 	m.ctrl.T.Helper()

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"optimization/internal/pkg/sentence"
 )
 
@@ -22,14 +23,13 @@ func NewQuestionerAction(rep Repository, client MorphClient) *questioner {
 	return &questioner{rep, client}
 }
 
-func (m questioner) Handle(ctx context.Context, s *sentence.Sentence) (judgments *sentence.Sentence, err error) {
+func (m questioner) Handle(ctx context.Context, s *sentence.Sentence) (response *sentence.Sentence, err error) {
 	var (
 		questions = extractQuestions(*s)
-		sIter     = s.IntoIter()
-		response  = sentence.Sentence{ID: s.ID}
-		_         = response
 		responses []sentence.Sentence
+		words     []sentence.Form
 	)
+	response = &sentence.Sentence{ID: s.ID}
 	for _, q := range questions { // 1
 		questionTemplate := sentence.Template{
 			Sentence: sentence.Sentence(q),
@@ -45,21 +45,21 @@ func (m questioner) Handle(ctx context.Context, s *sentence.Sentence) (judgments
 		}
 		responses = append(responses, *response)
 	}
-	for sIter.HasNext() {
-		word := sIter.GetNext()
-		_ = word
+	for _, word := range s.Words {
+		fmt.Println(word.Word)
+		words = append(words, word)
 	}
-	return nil, nil
+	response.Words = words
+	response.CountWord = uint(len(words))
+	return response, nil
 }
 
 func extractQuestions(s sentence.Sentence) []sentence.Question {
 	var (
-		sIter     = s.IntoIter()
 		questions []sentence.Question
 		question  sentence.Question
 	)
-	for sIter.HasNext() {
-		word := sIter.GetNext()
+	for _, word := range s.Words {
 		if word.Word == "{" {
 			question = sentence.Question{ID: s.ID}
 		} else if word.Word == "}" {
