@@ -17,34 +17,37 @@ func TestNewConcepterAction(t *testing.T) {
 	defer ctrl.Finish()
 
 	fullSentence := getSentence("необходимо выполнить mv {какое имя у файла или папки который нужно переместить?} {какое имя у файла или папки в которую нужно переместить?}")
-	expectedSentence := getSentence("необходимо выполнить mv 1.txt folder")
+	expectedSentence := getSentence("необходимо выполнить mv 1.txt в folder")
+	responseTemplate1 := getSentence("файл который нужно переместить")
+	responseTemplate2 := getSentence("папка в которую нужно переместить")
+	response1 := getSentence("1.txt")
+	response2 := getSentence("в folder")
 	questions := extractQuestions(fullSentence.Sentence)
 
 	rep := NewMockRepository(ctrl)
-	client := NewMockMorphClient(ctrl)
 
 	rep.EXPECT().
 		GetResponseTemplate(context.Background(), sentence.Template{Sentence: sentence.Sentence(questions[0]), Left: true}).
 		Times(1).
-		Return(&sentence.Template{}, nil)
+		Return(&responseTemplate1, nil)
 	rep.EXPECT().
-		GetResponse(context.Background(), sentence.Template{}).
+		GetResponse(context.Background(), responseTemplate1).
 		Times(1).
-		Return(&sentence.Sentence{}, nil)
+		Return(&response1.Sentence, nil)
 
 	rep.EXPECT().
 		GetResponseTemplate(context.Background(), sentence.Template{Sentence: sentence.Sentence(questions[1]), Left: true}).
 		Times(1).
-		Return(&sentence.Template{}, nil)
+		Return(&responseTemplate2, nil)
 	rep.EXPECT().
-		GetResponse(context.Background(), sentence.Template{}).
+		GetResponse(context.Background(), responseTemplate2).
 		Times(1).
-		Return(&sentence.Sentence{}, nil)
+		Return(&response2.Sentence, nil)
 
-	c := NewQuestionerAction(rep, client)
+	c := NewQuestionerAction(rep)
 	givenSentence, err := c.Handle(context.Background(), &fullSentence.Sentence)
 	require.Nil(t, err)
-	require.Equal(t, true, reflect.DeepEqual(givenSentence, []sentence.Sentence{expectedSentence.Sentence}))
+	require.Equal(t, true, reflect.DeepEqual(givenSentence, &expectedSentence.Sentence))
 }
 
 func getSentence(str string) sentence.Template {
@@ -554,12 +557,12 @@ func getSentence(str string) sentence.Template {
 	}
 }`
 	// expectedStr
-	m["необходимо выполнить mv 1.txt folder"] = `{
+	m["необходимо выполнить mv 1.txt в folder"] = `{
 	"left": true,
 	"right": false,
 	"sentence": {
 		"id": 0,
-		"count_words": 5,
+		"count_words": 6,
 		"words": [{
 				"word": "необходимо",
 				"normalForm": "необходимо",
@@ -627,6 +630,297 @@ func getSentence(str string) sentence.Template {
 				"positionInSentence": 0,
 				"tag": {
 					"pos": "",
+					"animacy": "",
+					"aspect": "",
+					"case": "",
+					"gender": "",
+					"involvement": "",
+					"mood": "",
+					"number": "",
+					"person": "",
+					"tense": "",
+					"transitivity": "",
+					"voice": ""
+				}
+			},
+			{
+				"word": "в",
+				"normalForm": "в",
+				"score": 0.999327,
+				"positionInSentence": 0,
+				"tag": {
+					"pos": "PREP",
+					"animacy": "",
+					"aspect": "",
+					"case": "",
+					"gender": "",
+					"involvement": "",
+					"mood": "",
+					"number": "",
+					"person": "",
+					"tense": "",
+					"transitivity": "",
+					"voice": ""
+				}
+			},
+			{
+				"word": "folder",
+				"normalForm": "folder",
+				"score": 1.0,
+				"positionInSentence": 0,
+				"tag": {
+					"pos": "",
+					"animacy": "",
+					"aspect": "",
+					"case": "",
+					"gender": "",
+					"involvement": "",
+					"mood": "",
+					"number": "",
+					"person": "",
+					"tense": "",
+					"transitivity": "",
+					"voice": ""
+				}
+			}
+		]
+	}
+}`
+	// responseTemplate 1
+	m["файл который нужно переместить"] = `{
+	"left": true,
+	"right": false,
+	"sentence": {
+		"id": 0,
+		"count_words": 4,
+		"words": [{
+			"word": "файл",
+			"normalForm": "файл",
+			"score": 0.5,
+			"positionInSentence": 0,
+			"tag": {
+				"pos": "NOUN",
+				"animacy": "inan",
+				"aspect": "",
+				"case": "nomn",
+				"gender": "masc",
+				"involvement": "",
+				"mood": "",
+				"number": "sing",
+				"person": "",
+				"tense": "",
+				"transitivity": "",
+				"voice": ""
+			}
+		}, {
+			"word": "который",
+			"normalForm": "который",
+			"score": 0.828767,
+			"positionInSentence": 0,
+			"tag": {
+				"pos": "ADJF",
+				"animacy": "",
+				"aspect": "",
+				"case": "nomn",
+				"gender": "masc",
+				"involvement": "",
+				"mood": "",
+				"number": "sing",
+				"person": "",
+				"tense": "",
+				"transitivity": "",
+				"voice": ""
+			}
+		}, {
+			"word": "нужно",
+			"normalForm": "нужно",
+			"score": 0.666666,
+			"positionInSentence": 0,
+			"tag": {
+				"pos": "PRED",
+				"animacy": "",
+				"aspect": "",
+				"case": "",
+				"gender": "",
+				"involvement": "",
+				"mood": "",
+				"number": "",
+				"person": "",
+				"tense": "pres",
+				"transitivity": "",
+				"voice": ""
+			}
+		}, {
+			"word": "переместить",
+			"normalForm": "переместить",
+			"score": 1.0,
+			"positionInSentence": 0,
+			"tag": {
+				"pos": "INFN",
+				"animacy": "",
+				"aspect": "perf",
+				"case": "",
+				"gender": "",
+				"involvement": "",
+				"mood": "",
+				"number": "",
+				"person": "",
+				"tense": "",
+				"transitivity": "tran",
+				"voice": ""
+			}
+		}]
+	}
+}`
+	// responseTemplate 2
+	m["папка в которую нужно переместить"] = `{
+	"left": true,
+	"right": false,
+	"sentence": {
+		"id": 0,
+		"count_words": 5,
+		"words": [{
+			"word": "папка",
+			"normalForm": "папка",
+			"score": 1.0,
+			"positionInSentence": 0,
+			"tag": {
+				"pos": "NOUN",
+				"animacy": "inan",
+				"aspect": "",
+				"case": "nomn",
+				"gender": "femn",
+				"involvement": "",
+				"mood": "",
+				"number": "sing",
+				"person": "",
+				"tense": "",
+				"transitivity": "",
+				"voice": ""
+			}
+		}, {
+			"word": "в",
+			"normalForm": "в",
+			"score": 0.999327,
+			"positionInSentence": 0,
+			"tag": {
+				"pos": "PREP",
+				"animacy": "",
+				"aspect": "",
+				"case": "",
+				"gender": "",
+				"involvement": "",
+				"mood": "",
+				"number": "",
+				"person": "",
+				"tense": "",
+				"transitivity": "",
+				"voice": ""
+			}
+		}, {
+			"word": "которую",
+			"normalForm": "который",
+			"score": 1.0,
+			"positionInSentence": 0,
+			"tag": {
+				"pos": "ADJF",
+				"animacy": "",
+				"aspect": "",
+				"case": "accs",
+				"gender": "femn",
+				"involvement": "",
+				"mood": "",
+				"number": "sing",
+				"person": "",
+				"tense": "",
+				"transitivity": "",
+				"voice": ""
+			}
+		}, {
+			"word": "нужно",
+			"normalForm": "нужно",
+			"score": 0.666666,
+			"positionInSentence": 0,
+			"tag": {
+				"pos": "PRED",
+				"animacy": "",
+				"aspect": "",
+				"case": "",
+				"gender": "",
+				"involvement": "",
+				"mood": "",
+				"number": "",
+				"person": "",
+				"tense": "pres",
+				"transitivity": "",
+				"voice": ""
+			}
+		}, {
+			"word": "переместить",
+			"normalForm": "переместить",
+			"score": 1.0,
+			"positionInSentence": 0,
+			"tag": {
+				"pos": "INFN",
+				"animacy": "",
+				"aspect": "perf",
+				"case": "",
+				"gender": "",
+				"involvement": "",
+				"mood": "",
+				"number": "",
+				"person": "",
+				"tense": "",
+				"transitivity": "tran",
+				"voice": ""
+			}
+		}]
+	}
+}`
+	// response 1
+	m["1.txt"] = `{
+	"left": true,
+	"right": false,
+	"sentence": {
+		"id": 0,
+		"count_words": 1,
+		"words": [{
+				"word": "1.txt",
+				"normalForm": "1.txt",
+				"score": 1.0,
+				"positionInSentence": 0,
+				"tag": {
+					"pos": "",
+					"animacy": "",
+					"aspect": "",
+					"case": "",
+					"gender": "",
+					"involvement": "",
+					"mood": "",
+					"number": "",
+					"person": "",
+					"tense": "",
+					"transitivity": "",
+					"voice": ""
+				}
+			}
+		]
+	}
+}`
+	// response 2
+	m["в folder"] = `{
+	"left": true,
+	"right": false,
+	"sentence": {
+		"id": 0,
+		"count_words": 2,
+		"words": [{
+				"word": "в",
+				"normalForm": "в",
+				"score": 0.999327,
+				"positionInSentence": 0,
+				"tag": {
+					"pos": "PREP",
 					"animacy": "",
 					"aspect": "",
 					"case": "",

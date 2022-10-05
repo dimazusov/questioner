@@ -64,26 +64,3 @@ func (mr *MockRepositoryMockRecorder) GetResponseTemplate(ctx, q interface{}) *g
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponseTemplate", reflect.TypeOf((*MockRepository)(nil).GetResponseTemplate), ctx, q)
 }
-
-// MockMorphClient is a mock of MorphClient interface.
-type MockMorphClient struct {
-	ctrl     *gomock.Controller
-	recorder *MockMorphClientMockRecorder
-}
-
-// MockMorphClientMockRecorder is the mock recorder for MockMorphClient.
-type MockMorphClientMockRecorder struct {
-	mock *MockMorphClient
-}
-
-// NewMockMorphClient creates a new mock instance.
-func NewMockMorphClient(ctrl *gomock.Controller) *MockMorphClient {
-	mock := &MockMorphClient{ctrl: ctrl}
-	mock.recorder = &MockMorphClientMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockMorphClient) EXPECT() *MockMorphClientMockRecorder {
-	return m.recorder
-}

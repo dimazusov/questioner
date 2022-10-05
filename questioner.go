@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"optimization/internal/pkg/sentence"
 )
 
@@ -11,16 +10,12 @@ type Repository interface {
 	GetResponse(ctx context.Context, r sentence.Template) (*sentence.Sentence, error)
 }
 
-type MorphClient interface { // ???
-}
-
 type questioner struct {
-	rep    Repository
-	client MorphClient
+	rep Repository
 }
 
-func NewQuestionerAction(rep Repository, client MorphClient) *questioner {
-	return &questioner{rep, client}
+func NewQuestionerAction(rep Repository) *questioner {
+	return &questioner{rep}
 }
 
 func (m questioner) Handle(ctx context.Context, s *sentence.Sentence) (response *sentence.Sentence, err error) {
@@ -45,9 +40,25 @@ func (m questioner) Handle(ctx context.Context, s *sentence.Sentence) (response 
 		}
 		responses = append(responses, *response)
 	}
+	var ( // дурно пахнущий кусок
+		responseCount int
+		isQuestion    bool
+	)
 	for _, word := range s.Words {
-		fmt.Println(word.Word)
-		words = append(words, word)
+		switch word.Word {
+		case "{":
+			words = append(words, responses[responseCount].Words...)
+			isQuestion = true
+			responseCount++
+		case "}":
+			isQuestion = false
+		default:
+			if isQuestion {
+				continue
+			} else {
+				words = append(words, word)
+			}
+		}
 	}
 	response.Words = words
 	response.CountWord = uint(len(words))
@@ -60,20 +71,15 @@ func extractQuestions(s sentence.Sentence) []sentence.Question {
 		question  sentence.Question
 	)
 	for _, word := range s.Words {
-		if word.Word == "{" {
+		switch word.Word {
+		case "{":
 			question = sentence.Question{ID: s.ID}
-		} else if word.Word == "}" {
+		case "}":
 			question.CountWord = uint(len(question.Words))
 			questions = append(questions, question)
-		} else {
+		default:
 			question.Words = append(question.Words, word)
 		}
 	}
 	return questions
-}
-
-func changeCase(form sentence.Form, wordCase string) sentence.Form { // неверно
-	form.Word = form.NormalForm
-	form.Tag.Case = wordCase
-	return form
 }
