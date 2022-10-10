@@ -51,7 +51,7 @@ func (mr *MockRepositoryMockRecorder) GetResponse(ctx, r interface{}) *gomock.Ca
 }
 
 // GetResponseTemplate mocks base method.
-func (m *MockRepository) GetResponseTemplate(ctx context.Context, q sentence.Template) (*sentence.Template, error) {
+func (m *MockRepository) GetResponseTemplate(ctx context.Context, q sentence.Question) (*sentence.Template, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetResponseTemplate", ctx, q)
 	ret0, _ := ret[0].(*sentence.Template)

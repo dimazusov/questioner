@@ -20,34 +20,65 @@ func TestNewConcepterAction(t *testing.T) {
 	expectedSentence := getSentence("необходимо выполнить mv 1.txt в folder")
 	responseTemplate1 := getSentence("файл который нужно переместить")
 	responseTemplate2 := getSentence("папка в которую нужно переместить")
-	response1 := getSentence("1.txt")
-	response2 := getSentence("в folder")
+	responses := []sentence.Template{getSentence("1.txt"), getSentence("в folder")}
 	questions := extractQuestions(fullSentence.Sentence)
 
 	rep := NewMockRepository(ctrl)
 
 	rep.EXPECT().
-		GetResponseTemplate(context.Background(), sentence.Template{Sentence: sentence.Sentence(questions[0]), Left: true}).
+		GetResponseTemplate(context.Background(), questions[0]).
 		Times(1).
 		Return(&responseTemplate1, nil)
 	rep.EXPECT().
 		GetResponse(context.Background(), responseTemplate1).
 		Times(1).
-		Return(&response1.Sentence, nil)
+		Return(&responses[0].Sentence, nil)
 
 	rep.EXPECT().
-		GetResponseTemplate(context.Background(), sentence.Template{Sentence: sentence.Sentence(questions[1]), Left: true}).
+		GetResponseTemplate(context.Background(), questions[1]).
 		Times(1).
 		Return(&responseTemplate2, nil)
 	rep.EXPECT().
 		GetResponse(context.Background(), responseTemplate2).
 		Times(1).
-		Return(&response2.Sentence, nil)
+		Return(&responses[1].Sentence, nil)
 
 	c := NewQuestionerAction(rep)
 	givenSentence, err := c.Handle(context.Background(), &fullSentence.Sentence)
 	require.Nil(t, err)
 	require.Equal(t, true, reflect.DeepEqual(givenSentence, &expectedSentence.Sentence))
+
+	response1 := &sentence.Sentence{ID: fullSentence.Sentence.ID}
+	responseCount := 0
+	isQuestion := false
+	for _, word := range fullSentence.Sentence.Words {
+		switch word.Word {
+		case "{":
+			response1.Words = append(response1.Words, responses[responseCount].Sentence.Words...)
+			isQuestion = true
+			responseCount++
+		case "}":
+			isQuestion = false
+		default:
+			if isQuestion {
+				continue
+			}
+			response1.Words = append(response1.Words, word)
+		}
+	}
+
+	fullIter := IntoIter(&fullSentence.Sentence)
+	response2 := &sentence.Sentence{ID: fullSentence.Sentence.ID}
+	for fullIter.HasNext() {
+		word, isQuestion := fullIter.GetNext()
+		if isQuestion {
+			response2.Words = append(response2.Words, responses[fullIter.ResponseIdx].Sentence.Words...)
+		} else {
+			response2.Words = append(response2.Words, word)
+		}
+	}
+
+	require.Equal(t, true, reflect.DeepEqual(response1, response2))
 }
 
 func getSentence(str string) sentence.Template {
