@@ -21,7 +21,13 @@ func TestNewConcepterAction(t *testing.T) {
 	responseTemplate1 := getSentence("файл который нужно переместить")
 	responseTemplate2 := getSentence("папка в которую нужно переместить")
 	responses := []sentence.Template{getSentence("1.txt"), getSentence("в folder")}
-	questions := extractQuestions(fullSentence.Sentence)
+	diapasons := extractQuestions(fullSentence.Sentence)
+	var questions []sentence.Question
+	for _, d := range diapasons {
+		if d.IsQuestion {
+			questions = append(questions, d.Sent)
+		}
+	}
 
 	rep := NewMockRepository(ctrl)
 
@@ -66,17 +72,19 @@ func TestNewConcepterAction(t *testing.T) {
 			response1.Words = append(response1.Words, word)
 		}
 	}
+	response1.CountWord = uint(len(response1.Words))
 
-	fullIter := IntoIter(&fullSentence.Sentence)
 	response2 := &sentence.Sentence{ID: fullSentence.Sentence.ID}
-	for fullIter.HasNext() {
-		word, isQuestion := fullIter.GetNext()
-		if isQuestion {
-			response2.Words = append(response2.Words, responses[fullIter.ResponseIdx].Sentence.Words...)
+	responseCount = 0
+	for _, d := range diapasons {
+		if d.IsQuestion {
+			response2.Words = append(response2.Words, responses[responseCount].Sentence.Words...)
+			responseCount++
 		} else {
-			response2.Words = append(response2.Words, word)
+			response2.Words = append(response2.Words, d.Sent.Words...)
 		}
 	}
+	response2.CountWord = uint(len(response2.Words))
 
 	require.Equal(t, true, reflect.DeepEqual(response1, response2))
 }
