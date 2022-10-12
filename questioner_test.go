@@ -21,13 +21,7 @@ func TestNewConcepterAction(t *testing.T) {
 	responseTemplate1 := getSentence("файл который нужно переместить")
 	responseTemplate2 := getSentence("папка в которую нужно переместить")
 	responses := []sentence.Template{getSentence("1.txt"), getSentence("в folder")}
-	diapasons := extractQuestions(fullSentence.Sentence)
-	var questions []sentence.Question
-	for _, d := range diapasons {
-		if d.IsQuestion {
-			questions = append(questions, d.Sent)
-		}
-	}
+	questions := fullSentence.Sentence.FindQuestions()
 
 	rep := NewMockRepository(ctrl)
 
@@ -50,7 +44,7 @@ func TestNewConcepterAction(t *testing.T) {
 		Return(&responses[1].Sentence, nil)
 
 	c := NewQuestionerAction(rep)
-	givenSentence, err := c.Handle(context.Background(), &fullSentence.Sentence)
+	givenSentence, err := c.Handle(context.Background(), fullSentence.Sentence)
 	require.Nil(t, err)
 	require.Equal(t, true, reflect.DeepEqual(givenSentence, &expectedSentence.Sentence))
 
@@ -74,15 +68,13 @@ func TestNewConcepterAction(t *testing.T) {
 	}
 	response1.CountWord = uint(len(response1.Words))
 
-	response2 := &sentence.Sentence{ID: fullSentence.Sentence.ID}
+	response2 := &sentence.Sentence{ID: fullSentence.Sentence.ID, Words: fullSentence.Sentence.Words}
 	responseCount = 0
-	for _, d := range diapasons {
-		if d.IsQuestion {
-			response2.Words = append(response2.Words, responses[responseCount].Sentence.Words...)
-			responseCount++
-		} else {
-			response2.Words = append(response2.Words, d.Sent.Words...)
-		}
+	for _, q := range questions {
+		newResp := response2.ReplaceQuestion(q, responses[responseCount].Sentence)
+		require.NotNil(t, newResp)
+		response2 = newResp
+		responseCount++
 	}
 	response2.CountWord = uint(len(response2.Words))
 
