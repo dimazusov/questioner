@@ -12,7 +12,7 @@ import (
 	"optimization/internal/pkg/sentence"
 )
 
-func TestNewConcepterAction(t *testing.T) {
+func TestNewQuestionerAction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -47,38 +47,6 @@ func TestNewConcepterAction(t *testing.T) {
 	givenSentence, err := c.Handle(context.Background(), fullSentence.Sentence)
 	require.Nil(t, err)
 	require.Equal(t, true, reflect.DeepEqual(givenSentence, &expectedSentence.Sentence))
-
-	response1 := &sentence.Sentence{ID: fullSentence.Sentence.ID}
-	responseCount := 0
-	isQuestion := false
-	for _, word := range fullSentence.Sentence.Words {
-		switch word.Word {
-		case "{":
-			response1.Words = append(response1.Words, responses[responseCount].Sentence.Words...)
-			isQuestion = true
-			responseCount++
-		case "}":
-			isQuestion = false
-		default:
-			if isQuestion {
-				continue
-			}
-			response1.Words = append(response1.Words, word)
-		}
-	}
-	response1.CountWord = uint(len(response1.Words))
-
-	response2 := &sentence.Sentence{ID: fullSentence.Sentence.ID, Words: fullSentence.Sentence.Words}
-	responseCount = 0
-	for _, q := range questions {
-		newResp := response2.ReplaceQuestion(q, responses[responseCount].Sentence)
-		require.NotNil(t, newResp)
-		response2 = newResp
-		responseCount++
-	}
-	response2.CountWord = uint(len(response2.Words))
-
-	require.Equal(t, true, reflect.DeepEqual(response1, response2))
 }
 
 func getSentence(str string) sentence.Template {

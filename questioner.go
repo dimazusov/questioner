@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"optimization/internal/pkg/sentence"
 )
 
@@ -20,7 +19,7 @@ func NewQuestionerAction(rep Repository) *questioner {
 }
 
 func (m questioner) Handle(ctx context.Context, s sentence.Sentence) (result *sentence.Sentence, err error) {
-	res := sentence.Sentence{ID: s.ID, Words: s.Words}
+	res := sentence.Sentence{Words: s.Words}
 	questions := s.FindQuestions()
 	for _, q := range questions {
 		responseTemplate, err := m.rep.GetResponseTemplate(ctx, q)
@@ -31,11 +30,11 @@ func (m questioner) Handle(ctx context.Context, s sentence.Sentence) (result *se
 		if err != nil {
 			return nil, err
 		}
-		newRes := res.ReplaceQuestion(q, *response)
-		if newRes == nil {
-			return nil, errors.New("question { " + sentence.Sentence(q).Sentence() + " } \n\t was not replaced by the response { " + response.Sentence() + " }")
+		newRes, err := res.ReplaceQuestion(q, *response)
+		if err != nil {
+			return nil, err
 		}
-		res = *newRes
+		res = newRes
 	}
 	res.CountWord = uint(len(res.Words))
 	return &res, nil

@@ -1,6 +1,6 @@
 package sentence
 
-import "reflect"
+import "errors"
 
 type Sentence struct {
 	ID        uint   `json:"id" db:"id"`
@@ -22,51 +22,32 @@ func (s Sentence) FindQuestions() []Question {
 	var questions []Question
 	question := new(Question)
 	for _, w := range s.Words {
-		switch w.Word {
-		case "{":
+		if w.Word == "{" {
 			question = new(Question)
-			question.ID = s.ID
-		case "}":
-			question.CountWord = uint(len(question.Words))
+		} else if w.Word == "}" {
 			questions = append(questions, *question)
-		default:
+		} else {
 			question.Words = append(question.Words, w)
 		}
 	}
 	return questions
 }
 
-func (s Sentence) ReplaceQuestion(question Question, response Sentence) *Sentence {
-	type Comp struct {
-		s    Sentence
-		from int
-		to   int
-	}
-	var sent []Form
-	sent = append(sent, s.Words...)
-	result := Sentence{ID: s.ID}
-	compared := new(Comp)
+func (s Sentence) ReplaceQuestion(question Question, response Sentence) (Sentence, error) {
+	result := new(Sentence)
+	from, to := 0, 0
 	for i, w := range s.Words {
-		switch w.Word {
-		case "{":
-			compared = new(Comp)
-			compared.s.ID = s.ID
-			compared.from = i
-		case "}":
-			compared.s.CountWord = uint(len(compared.s.Words))
-			compared.to = i + 1
-			if reflect.DeepEqual(question, Question(compared.s)) {
-				result.Words = append(result.Words, s.Words[:compared.from]...)
-				result.Words = append(result.Words, response.Words...)
-				result.Words = append(result.Words, s.Words[compared.to:]...)
-				result.CountWord = uint(len(result.Words))
-				return &result
-			}
-		default:
-			compared.s.Words = append(compared.s.Words, w)
+		if w.Word == "{" {
+			from = i
+		} else if w.Word == "}" {
+			to = i + 1
+			result.Words = append(result.Words, s.Words[:from]...)
+			result.Words = append(result.Words, response.Words...)
+			result.Words = append(result.Words, s.Words[to:]...)
+			return *result, nil
 		}
 	}
-	return nil
+	return *result, errors.New("question { " + Sentence(question).Sentence() + " } \n\t was not replaced by the response { " + response.Sentence() + " }")
 }
 
 type Form struct {
