@@ -1,7 +1,5 @@
 package sentence
 
-import "errors"
-
 type Sentence struct {
 	ID        uint   `json:"id" db:"id"`
 	CountWord uint   `json:"count_words"`
@@ -18,36 +16,14 @@ func (s Sentence) Sentence() string {
 	return result
 }
 
-func (s Sentence) FindQuestions() []Question {
-	var questions []Question
-	question := new(Question)
-	for _, w := range s.Words {
-		if w.Word == "{" {
-			question = new(Question)
-		} else if w.Word == "}" {
-			questions = append(questions, *question)
-		} else {
-			question.Words = append(question.Words, w)
-		}
+func (s Sentence) Copy() Sentence {
+	var words []Form
+	words = append(words, s.Words...)
+	return Sentence{
+		ID:        s.ID,
+		CountWord: s.CountWord,
+		Words:     words,
 	}
-	return questions
-}
-
-func (s Sentence) ReplaceQuestion(question Question, response Sentence) (Sentence, error) {
-	result := new(Sentence)
-	from, to := 0, 0
-	for i, w := range s.Words {
-		if w.Word == "{" {
-			from = i
-		} else if w.Word == "}" {
-			to = i + 1
-			result.Words = append(result.Words, s.Words[:from]...)
-			result.Words = append(result.Words, response.Words...)
-			result.Words = append(result.Words, s.Words[to:]...)
-			return *result, nil
-		}
-	}
-	return *result, errors.New("question { " + Sentence(question).Sentence() + " } \n\t was not replaced by the response { " + response.Sentence() + " }")
 }
 
 type Form struct {

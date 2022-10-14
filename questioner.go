@@ -19,10 +19,19 @@ func NewQuestionerAction(rep Repository) *questioner {
 }
 
 func (m questioner) Handle(ctx context.Context, s sentence.Sentence) (result *sentence.Sentence, err error) {
-	res := sentence.Sentence{Words: s.Words}
-	questions := s.FindQuestions()
-	for _, q := range questions {
-		responseTemplate, err := m.rep.GetResponseTemplate(ctx, q)
+	/// res := перемести {что?} {куда?}
+	// resSent := перемести {что?} {куда?}
+	//
+	//for resSent.HasQuestions() {
+	//	question := resSent.FirstQuestion()
+	//	response := getResponse(question)
+	//	resSent = resSent.ReplaceFirstQuestion(response)
+	//}
+
+	res := s.Copy().Iterator()
+	for res.HasQuestion() {
+		question := res.GetNextQuestion()
+		responseTemplate, err := m.rep.GetResponseTemplate(ctx, question)
 		if err != nil {
 			return nil, err
 		}
@@ -30,12 +39,10 @@ func (m questioner) Handle(ctx context.Context, s sentence.Sentence) (result *se
 		if err != nil {
 			return nil, err
 		}
-		newRes, err := res.ReplaceQuestion(q, *response)
+		err = res.ReplaceFirstQuestion(*response)
 		if err != nil {
 			return nil, err
 		}
-		res = newRes
 	}
-	res.CountWord = uint(len(res.Words))
-	return &res, nil
+	return res.Sentence(), nil
 }
