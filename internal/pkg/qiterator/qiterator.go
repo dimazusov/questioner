@@ -1,7 +1,6 @@
-package iterator
+package qiterator
 
 import (
-	"errors"
 	"optimization/internal/pkg/sentence"
 )
 
@@ -42,24 +41,6 @@ func (q *QuestionIterator) GetNextQuestion() sentence.Question {
 		q.questions = q.questions[1:]
 	}
 	return r
-}
-
-func (q *QuestionIterator) ReplaceFirstQuestion(response sentence.Sentence) error {
-	result := new(sentence.Sentence)
-	from, to := 0, 0
-	for i, w := range q.sent.Words {
-		if w.Word == "{" {
-			from = i
-		} else if w.Word == "}" {
-			to = i + 1
-			result.Words = append(result.Words, q.sent.Words[:from]...)
-			result.Words = append(result.Words, response.Words...)
-			result.Words = append(result.Words, q.sent.Words[to:]...)
-			q.sent = *result
-			return nil
-		}
-	}
-	return errors.New("question { " + sentence.Sentence(q.questions[0]).Sentence() + " } \n\t was not replaced by the response { " + response.Sentence() + " }")
 }
 
 func (q *QuestionIterator) Sentence() *sentence.Sentence {

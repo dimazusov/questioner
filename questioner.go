@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"optimization/internal/pkg/iterator"
+	"optimization/internal/pkg/qiterator"
 	"optimization/internal/pkg/sentence"
 )
 
@@ -20,9 +20,9 @@ func NewQuestionerAction(rep Repository) *questioner {
 }
 
 func (m questioner) Handle(ctx context.Context, s sentence.Sentence) (*sentence.Sentence, error) {
-	questions := iterator.NewQuestionIterator(s.Copy())
-	for questions.Has() {
-		question := questions.GetNextQuestion()
+	questionIterator := qiterator.NewQuestionIterator(s.Copy())
+	for questionIterator.Has() {
+		question := questionIterator.GetNextQuestion()
 		responseTemplate, err := m.rep.GetResponseTemplate(ctx, question)
 		if err != nil {
 			return nil, err
@@ -31,9 +31,11 @@ func (m questioner) Handle(ctx context.Context, s sentence.Sentence) (*sentence.
 		if err != nil {
 			return nil, err
 		}
-		if err = questions.ReplaceFirstQuestion(*response); err != nil {
+		newS, err := s.ReplaceFirstQuestion(*response)
+		if err != nil {
 			return nil, err
 		}
+		s = *newS
 	}
-	return questions.Sentence(), nil
+	return questionIterator.Sentence(), nil
 }

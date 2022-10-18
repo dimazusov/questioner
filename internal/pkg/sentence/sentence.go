@@ -1,5 +1,7 @@
 package sentence
 
+import "errors"
+
 type Sentence struct {
 	ID        uint   `json:"id" db:"id"`
 	CountWord uint   `json:"count_words"`
@@ -24,6 +26,23 @@ func (s Sentence) Copy() Sentence {
 		CountWord: s.CountWord,
 		Words:     words,
 	}
+}
+
+func (s Sentence) ReplaceFirstQuestion(response Sentence) (*Sentence, error) {
+	result := new(Sentence)
+	from, to := 0, 0
+	for i, w := range s.Words {
+		if w.Word == "{" {
+			from = i
+		} else if w.Word == "}" {
+			to = i + 1
+			result.Words = append(result.Words, s.Words[:from]...)
+			result.Words = append(result.Words, response.Words...)
+			result.Words = append(result.Words, s.Words[to:]...)
+			return result, nil
+		}
+	}
+	return nil, errors.New("was not replaced by the response { " + response.Sentence() + " }")
 }
 
 type Form struct {

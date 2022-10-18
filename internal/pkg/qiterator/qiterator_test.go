@@ -1,4 +1,4 @@
-package iterator
+package qiterator
 
 import (
 	"github.com/stretchr/testify/require"
@@ -19,15 +19,16 @@ func TestFindQuestion(t *testing.T) {
 
 func TestReplaceFirstQuestion(t *testing.T) {
 	sent := getSentence()
-	questions := NewQuestionIterator(sent)
-	for questions.Has() {
-		q := questions.GetNextQuestion()
+	questionIterator := NewQuestionIterator(sent)
+	for questionIterator.Has() {
+		q := questionIterator.GetNextQuestion()
 		r := getResponse(q)
-		err := questions.ReplaceFirstQuestion(r)
+		newSent, err := sent.ReplaceFirstQuestion(r)
 		require.Nil(t, err)
+		sent = *newSent
 	}
 	expected := getResultSentence()
-	result := *questions.Sentence()
+	result := *questionIterator.Sentence()
 	require.Equal(t, true, reflect.DeepEqual(result, expected))
 }
 
