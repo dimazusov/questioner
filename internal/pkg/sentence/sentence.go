@@ -51,11 +51,6 @@ type Tag struct {
 	Voice        string `json:"voice" db:"voice"`
 }
 
-type Indexes struct {
-	I int
-	J int
-}
-
 type Template struct {
 	Sentence Sentence `json:"sentence" db:"sentence"`
 	Left     bool     `json:"left" db:"left"`
