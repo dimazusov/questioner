@@ -5,7 +5,6 @@ import (
 )
 
 type QuestionIterator struct {
-	sent      sentence.Sentence
 	questions []sentence.Question
 	index     int
 }
@@ -26,11 +25,11 @@ func FindQuestions(s sentence.Sentence) []sentence.Question {
 }
 
 func NewQuestionIterator(s sentence.Sentence) *QuestionIterator {
-	return &QuestionIterator{sent: s, questions: FindQuestions(s)}
+	return &QuestionIterator{questions: FindQuestions(s)}
 }
 
 func (q *QuestionIterator) Has() bool {
-	return q.questions != nil
+	return q.index <= len(q.questions)
 }
 
 func (q *QuestionIterator) GetNextQuestion() sentence.Question {
@@ -40,10 +39,6 @@ func (q *QuestionIterator) GetNextQuestion() sentence.Question {
 	} else {
 		q.questions = q.questions[1:]
 	}
+	q.index++
 	return r
-}
-
-func (q *QuestionIterator) Sentence() *sentence.Sentence {
-	q.sent.CountWord = uint(len(q.sent.Words))
-	return &q.sent
 }

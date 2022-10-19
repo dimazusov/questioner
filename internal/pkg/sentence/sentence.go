@@ -10,7 +10,7 @@ type Sentence struct {
 
 type Question Sentence
 
-func (s Sentence) Sentence() string {
+func (s *Sentence) Sentence() string {
 	var result string
 	for _, word := range s.Words {
 		result += word.Word + " "
@@ -18,17 +18,17 @@ func (s Sentence) Sentence() string {
 	return result
 }
 
-func (s Sentence) Copy() Sentence {
+func (s *Sentence) Copy() *Sentence {
 	var words []Form
 	words = append(words, s.Words...)
-	return Sentence{
+	return &Sentence{
 		ID:        s.ID,
 		CountWord: s.CountWord,
 		Words:     words,
 	}
 }
 
-func (s Sentence) ReplaceFirstQuestion(response Sentence) (*Sentence, error) {
+func (s *Sentence) ReplaceFirstQuestion(response Sentence) error {
 	result := new(Sentence)
 	from, to := 0, 0
 	for i, w := range s.Words {
@@ -39,10 +39,12 @@ func (s Sentence) ReplaceFirstQuestion(response Sentence) (*Sentence, error) {
 			result.Words = append(result.Words, s.Words[:from]...)
 			result.Words = append(result.Words, response.Words...)
 			result.Words = append(result.Words, s.Words[to:]...)
-			return result, nil
+			s.Words = result.Words
+			s.CountWord = uint(len(s.Words))
+			return nil
 		}
 	}
-	return nil, errors.New("was not replaced by the response { " + response.Sentence() + " }")
+	return errors.New("question was not replaced by the response { " + response.Sentence() + " }")
 }
 
 type Form struct {

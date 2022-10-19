@@ -19,8 +19,9 @@ func NewQuestionerAction(rep Repository) *questioner {
 	return &questioner{rep}
 }
 
-func (m questioner) Handle(ctx context.Context, s sentence.Sentence) (*sentence.Sentence, error) {
-	questionIterator := qiterator.NewQuestionIterator(s.Copy())
+func (m questioner) Handle(ctx context.Context, s sentence.Sentence) (result *sentence.Sentence, err error) {
+	result = s.Copy()
+	questionIterator := qiterator.NewQuestionIterator(*s.Copy())
 	for questionIterator.Has() {
 		question := questionIterator.GetNextQuestion()
 		responseTemplate, err := m.rep.GetResponseTemplate(ctx, question)
@@ -31,11 +32,9 @@ func (m questioner) Handle(ctx context.Context, s sentence.Sentence) (*sentence.
 		if err != nil {
 			return nil, err
 		}
-		newS, err := s.ReplaceFirstQuestion(*response)
-		if err != nil {
+		if err = result.ReplaceFirstQuestion(*response); err != nil {
 			return nil, err
 		}
-		s = *newS
 	}
-	return questionIterator.Sentence(), nil
+	return result, nil
 }

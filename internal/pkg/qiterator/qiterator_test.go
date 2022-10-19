@@ -17,19 +17,17 @@ func TestFindQuestion(t *testing.T) {
 	require.Equal(t, true, reflect.DeepEqual(questions, expected))
 }
 
-func TestReplaceFirstQuestion(t *testing.T) {
+func TestGetNextQuestion(t *testing.T) {
 	sent := getSentence()
-	questionIterator := NewQuestionIterator(sent)
-	for questionIterator.Has() {
-		q := questionIterator.GetNextQuestion()
+	questions := NewQuestionIterator(*sent.Copy())
+	for questions.Has() {
+		q := questions.GetNextQuestion()
 		r := getResponse(q)
-		newSent, err := sent.ReplaceFirstQuestion(r)
+		err := sent.ReplaceFirstQuestion(r)
 		require.Nil(t, err)
-		sent = *newSent
 	}
 	expected := getResultSentence()
-	result := *questionIterator.Sentence()
-	require.Equal(t, true, reflect.DeepEqual(result, expected))
+	require.Equal(t, true, reflect.DeepEqual(sent, expected))
 }
 
 func getSentence() sentence.Sentence {
@@ -61,5 +59,6 @@ func getResponse(q sentence.Question) sentence.Sentence {
 	m := make(map[string]sentence.Sentence)
 	m["c "] = sentence.Sentence{Words: []sentence.Form{{Word: "1"}}}
 	m["e f "] = sentence.Sentence{Words: []sentence.Form{{Word: "2"}}}
-	return m[sentence.Sentence(q).Sentence()]
+	s := sentence.Sentence(q)
+	return m[s.Sentence()]
 }
