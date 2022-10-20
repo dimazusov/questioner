@@ -9,23 +9,8 @@ type QuestionIterator struct {
 	index     int
 }
 
-func FindQuestions(s sentence.Sentence) []sentence.Question {
-	var questions []sentence.Question
-	question := new(sentence.Question)
-	for _, w := range s.Words {
-		if w.Word == "{" {
-			question = new(sentence.Question)
-		} else if w.Word == "}" {
-			questions = append(questions, *question)
-		} else {
-			question.Words = append(question.Words, w)
-		}
-	}
-	return questions
-}
-
 func NewQuestionIterator(s sentence.Sentence) *QuestionIterator {
-	return &QuestionIterator{questions: FindQuestions(s)}
+	return &QuestionIterator{questions: sentence.FindQuestions(s)}
 }
 
 func (q *QuestionIterator) Has() bool {

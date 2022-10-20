@@ -8,8 +8,6 @@ type Sentence struct {
 	Words     []Form `json:"words" gorm:"foreignKey:JudgmentID"`
 }
 
-type Question Sentence
-
 func (s *Sentence) Sentence() string {
 	var result string
 	for _, word := range s.Words {
@@ -45,6 +43,23 @@ func (s *Sentence) ReplaceFirstQuestion(response Sentence) error {
 		}
 	}
 	return errors.New("question was not replaced by the response { " + response.Sentence() + " }")
+}
+
+type Question Sentence
+
+func FindQuestions(s Sentence) []Question {
+	var questions []Question
+	question := new(Question)
+	for _, w := range s.Words {
+		if w.Word == "{" {
+			question = new(Question)
+		} else if w.Word == "}" {
+			questions = append(questions, *question)
+		} else {
+			question.Words = append(question.Words, w)
+		}
+	}
+	return questions
 }
 
 type Form struct {

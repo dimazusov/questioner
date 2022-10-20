@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/stretchr/testify/require"
 	"log"
-	"optimization/internal/pkg/qiterator"
 	"reflect"
 	"testing"
 
@@ -22,7 +21,7 @@ func TestNewQuestionerAction(t *testing.T) {
 	responseTemplate1 := getSentence("файл который нужно переместить")
 	responseTemplate2 := getSentence("папка в которую нужно переместить")
 	responses := []sentence.Template{getSentence("1.txt"), getSentence("в folder")}
-	questions := qiterator.FindQuestions(fullSentence.Sentence)
+	questions := sentence.FindQuestions(fullSentence.Sentence)
 
 	rep := NewMockRepository(ctrl)
 

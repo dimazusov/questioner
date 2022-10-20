@@ -7,16 +7,6 @@ import (
 	"testing"
 )
 
-func TestFindQuestion(t *testing.T) {
-	sent := getSentence()
-	expected := []sentence.Question{
-		{Words: []sentence.Form{{Word: "c"}}},
-		{Words: []sentence.Form{{Word: "e"}, {Word: "f"}}},
-	}
-	questions := FindQuestions(sent)
-	require.Equal(t, true, reflect.DeepEqual(questions, expected))
-}
-
 func TestGetNextQuestion(t *testing.T) {
 	sent := getSentence()
 	questions := NewQuestionIterator(*sent.Copy())
